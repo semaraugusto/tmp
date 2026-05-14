@@ -1,0 +1,10 @@
+{
+  "repo": {
+    "id": "5288",
+    "url": "https://verilib.org",
+    "is_admin": true
+  },
+  "execution-mode": "local",
+  "docker-image": "ghcr.io/beneficial-ai-foundation/verilib-cli:latest",
+  "auto-validate-specs": false
+}
