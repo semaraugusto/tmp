@@ -19,7 +19,17 @@ jobs:
       - name: Write API key to credentials file
         run: echo -n "${{ secrets.VERILIB_API_KEY }}" > ~/.verilib_credentials
 
-      - name: Reclone
+      # - name: Reclone
+      #   env:
+      #     VERILIB_API_KEY: ${{ secrets.VERILIB_API_KEY }}
+      #   run: verilib-cli reclone
+      #
+      - name: Reclone CURL
         env:
           VERILIB_API_KEY: ${{ secrets.VERILIB_API_KEY }}
-        run: verilib-cli reclone
+          HTTP_ENDPOINT: ${{ secrets.HTTP_ENDPOINT }}
+        run: |
+          curl -sS -X POST "$HTTP_ENDPOINT" \
+            -H "Authorization: ApiKey $VERILIB_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{}'
