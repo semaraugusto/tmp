@@ -22,6 +22,8 @@ impl std::fmt::Display for DalekBits {
 }
 
 fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+
     let target_arch = match std::env::var("CARGO_CFG_TARGET_ARCH") {
         Ok(arch) => arch,
         _ => "".to_string(),
