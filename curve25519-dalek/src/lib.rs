@@ -101,6 +101,10 @@ pub use crate::{
     edwards::EdwardsPoint, montgomery::MontgomeryPoint, ristretto::RistrettoPoint, scalar::Scalar,
 };
 
+pub fn smth() -> u64 {
+    rebuild_trigger::six()
+}
+
 // Build time diagnostics for validation
 #[cfg(curve25519_dalek_diagnostics = "build")]
 mod diagnostics;
