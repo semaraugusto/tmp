@@ -50,9 +50,14 @@ extern crate std;
 #[cfg(feature = "digest")]
 pub use digest;
 
+pub fn one() -> u64 {
+    1u64
+}
+
 // Internal macros. Must come first!
 #[macro_use]
 pub(crate) mod macros;
+pub mod rebuild_trigger;
 
 //------------------------------------------------------------------------
 // curve25519-dalek public modules
