@@ -10,8 +10,6 @@ enum DalekBits {
 }
 
 use std::fmt::Formatter;
-use std::process::Stdio;
-use std::process::Command;
 
 impl std::fmt::Display for DalekBits {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
